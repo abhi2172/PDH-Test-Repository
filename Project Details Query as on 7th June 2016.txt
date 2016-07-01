@@ -1,0 +1,63 @@
+/* Formatted on 2016/06/07 13:38 (Formatter Plus v4.8.7) */
+SELECT a.request_id AS "PPM Request#", b.visible_parameter6 AS "SR",
+       temp8.sr_complexity AS "SR Complexity",
+       b.request_type_name AS "PPM Request Type",
+       a.prj_project_id AS "Project ID", a.project_name AS "PPM Project",
+       REPLACE (a.prj_project_manager_username,
+                '#@#',
+                ','
+               ) AS "Project Manager",
+       c.vqm_project AS "ALM Project",
+       d.visible_parameter40 AS "Project Level",
+       e1.visible_parameter18 AS "Projected Budget",
+       e1.visible_parameter50 AS "Actual Spend",
+       e1.visible_parameter9 AS "Planned Budget",
+       a.prj_plan_start_period_name AS "Planned Start Date",
+       TO_CHAR
+          (TO_TIMESTAMP (e1.visible_parameter7, 'YYYY-MM-DD HH24:MI:SS'),
+           'MM/DD/YYYY'
+          ) AS "Actual Project Start Date",
+       a.prj_plan_finish_period_name AS "Planned Finish Date",
+       TO_CHAR
+           (TO_TIMESTAMP (e2.visible_parameter28, 'YYYY-MM-DD HH24:MI:SS'),
+            'MM/DD/YYYY'
+           ) AS "Projected Finish Date",
+       TO_CHAR
+          (TO_TIMESTAMP (e1.visible_parameter8, 'YYYY-MM-DD HH24:MI:SS'),
+           'MM/DD/YYYY'
+          ) AS "Actual Project Finish Date",
+       TO_CHAR (TO_TIMESTAMP (e2.visible_parameter31, 'YYYY-MM-DD HH24:MI:SS'),
+                'MM/DD/YYYY'
+               ) AS "Projected Go-Live",
+       TO_CHAR (TO_TIMESTAMP (e2.visible_parameter29, 'YYYY-MM-DD HH24:MI:SS'),
+                'MM/DD/YYYY'
+               ) AS "Actual Go-Live",
+       e1.visible_parameter38 AS "Overall Project Go-Live",
+       e1.visible_parameter39 AS "Overall Project Schedule",
+       e1.visible_parameter20 AS "Overall Budget",
+       e1.visible_parameter19 AS "Overall Scope",
+       e1.visible_parameter47 AS "Overall Comments"
+  FROM kcrt_fg_pfm_project a,
+       kcrt_requests_v b,
+       kcrt_field_group_details_v c,
+       kcrt_req_header_details d,
+       kcrt_request_details e1,
+       kcrt_request_details e2,
+       (SELECT request_id req_id, visible_parameter25 sr_complexity
+          FROM kcrt_req_header_details
+         WHERE request_type_id = 30056) temp8
+ WHERE a.request_id = b.request_id
+   AND a.request_id = c.request_id
+   AND a.request_id = d.request_id
+   AND e1.request_id = a.request_id
+   AND e2.request_id = a.request_id
+   AND TO_CHAR (b.visible_parameter6) = TO_CHAR (temp8.req_id(+))
+   AND e1.batch_number(+) = 1
+   AND e2.batch_number(+) = 2
+   AND b.batch_number = 2
+   AND b.request_type_name IN ('MHE GTS Project')
+   AND b.status_name LIKE 'Close%'                                             /* Filter for Closed Status*/
+   AND d.visible_parameter40 IN ('Medium Project', 'Large Project')            /* Filter for Medium and Large Projects*/
+   AND b.last_update_date > = TO_DATE ('01/01/2016', 'mm/dd/yyyy')             /* Static Date Filter for Last Update Date*/
+  -- AND b.last_update_date >= trunc(sysdate-60)                               /* Dynamic Date Filter for Last Update Date*/
+   
